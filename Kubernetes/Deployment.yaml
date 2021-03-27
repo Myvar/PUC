@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: puc
+  namespace: puc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: puc
+  template:
+    metadata:
+      labels:
+        app: puc
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - image: reg.myvar.global/puc
+          imagePullPolicy: Always
+          name: puc
+          ports:
+            - containerPort: 1234
+          resources:
+            limits:
+              cpu: 0.4
+              memory: 0.4Gi
+            requests:
+              cpu: 0.1
+              memory: 0.1Gi
+---
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: puc
+  namespace: puc
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: puc
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 75

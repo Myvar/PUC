@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: puc
+  namespace: puc
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+#    nginx.org/mergeable-ingress-type: "minion"
+spec:
+  tls:
+    - hosts:
+        - puc.myvar.cloud
+      secretName: puc-cloud-tls
+  rules:
+    - host: puc.myvar.cloud
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: puc
+                port:
+                  number: 1234
