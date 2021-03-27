@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prosperous Universe Entity Relationships Data</title>
+    <!-- Copyright 1998-2021 by Northwoods Software Corporation. -->
+    <meta name="description" content="Prosperous Universe Entity Relationships Data"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="https://unpkg.com/gojs/release/go.js"></script>
+    <script src="./DragZoomingTool.js"></script>
+    <script id="code">
+        function init() {
+            if (window.goSamples) goSamples();  // init for these samples -- you don't need to call this
+            var $ = go.GraphObject.make;  // for conciseness in defining templates
+
+            myDiagram =
+                $(go.Diagram, "myDiagramDiv",  // must name or refer to the DIV HTML element
+                    {
+                        initialAutoScale: go.Diagram.Uniform,  // an initial automatic zoom-to-fit
+                        contentAlignment: go.Spot.Center,  // align document to the center of the viewport
+                        /*layout:
+                            $(go.ForceDirectedLayout,  // automatically spread nodes apart
+                                {maxIterations: 1000, defaultElectricalCharge: 50})*/
+                        /*  layout: $(go.TreeLayout,
+                              {comparer: go.LayoutVertex.smartComparer})*/
+                        /*  layout: $(go.LayeredDigraphLayout, {
+                              columnSpacing: 25,
+                              layerSpacing: 100,
+                              setsPortSpots: true
+                          })*/
+                        layout: $(go.CircularLayout)
+                    });
+
+            // define each Node's appearance
+            myDiagram.nodeTemplate =
+                $(go.Node, "Auto",  // the whole node panel
+                    {locationSpot: go.Spot.Center},
+                    // define the node's outer shape, which will surround the TextBlock
+                    $(go.Shape, "Rectangle",
+                        {fill: "white", stroke: "black"}, new go.Binding("fill", "color")),
+                    $(go.TextBlock,
+                        {font: "bold 10pt helvetica, bold arial, sans-serif", margin: 4},
+                        new go.Binding("text", "text"))
+                );
+
+            // replace the default Link template in the linkTemplateMap
+            myDiagram.linkTemplate =
+                $(go.Link, {
+                       // routing: go.Link.AvoidsNodes,
+                        curve: go.Link.Bezier,
+                        corner: 50
+                    },  // the whole link panel
+                    $(go.Shape,  // the link shape
+                        {stroke: "black"}, new go.Binding("stroke", "color")),
+                    $(go.Shape,  // the arrowhead
+                        {toArrow: "standard", stroke: "orange"}),
+                    /*   $(go.Panel, "Auto",
+                           $(go.Shape,  // the label background, which becomes transparent around the edges
+                               {
+                                   fill: null,
+                                   stroke: null
+                               })),*/
+                    /* $(go.TextBlock,  // the label text
+                         {
+                             textAlign: "center",
+                             font: "10pt helvetica, arial, sans-serif",
+                             stroke: "#555555",
+                             margin: 4
+                         }, {segmentIndex: 0, segmentFraction: 0.4},
+                         new go.Binding("text", "text"))*/
+                );
+
+            myDiagram.toolManager.mouseMoveTools.insertAt(2, new DragZoomingTool());
+            // create the model for the concept map
+            var nodeDataArray = [
+                // { key: 1, text: "Concept Maps" },
+                //{{NODES}}
+
+            ];
+            var linkDataArray = [
+                //{{LINKS}}
+
+            ];
+            myDiagram.model = new go.GraphLinksModel(nodeDataArray, linkDataArray);
+
+            document.getElementById("blobButton").addEventListener("click", makeBlob);
+        }
+
+        function myCallback(blob) {
+            var url = window.URL.createObjectURL(blob);
+            var filename = "diagram.png";
+
+            var a = document.createElement("a");
+            a.style = "display: none";
+            a.href = url;
+            a.download = filename;
+
+            // IE 11
+            if (window.navigator.msSaveBlob !== undefined) {
+                window.navigator.msSaveBlob(blob, filename);
+                return;
+            }
+
+            document.body.appendChild(a);
+            requestAnimationFrame(function () {
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            });
+        }
+
+        function makeBlob() {
+            var blob = myDiagram.makeImageData({background: "#262626", returnType: "blob", callback: myCallback});
+        }
+    </script>
+</head>
+<body style="background-color: #262626;" onload="init()">
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-51823839-2"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'UA-51823839-2');
+</script>
+<div style="color: white;">
+    <button id="blobButton">Download Png</button>
+    Control + Scrool to zoom, click and drag to pan, click on lines to highlight them
+</div>
+<div id="myDiagramDiv"
+     style="background-color: #262626; width: 100%;  position: absolute; bottom: 0px; top: 35px; padding: 0px; margin: 0px;overflow: hidden;"></div>
+
+</body>
+</html>
